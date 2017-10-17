@@ -5,7 +5,7 @@ require 'rexml/document'
 require 'net/http'
 
 prefix = 'MSC'
-stations = 1..25
+stations = 1..26
 $route_id = 'MSC'
 $service_id = 'EVERYDAY'
 
