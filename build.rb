@@ -14,14 +14,23 @@ $service_id = 'EVERYDAY'
 stop_list = CSV.read("stops.csv")
 stops = CSV.open("gtfs/stops.txt", "wb")
 
-stops << ["stop_id", "stop_name", "stop_lat", "stop_lon", "zone_id"]
+stops << ["stop_id", "stop_name", "stop_lat", "stop_lon", "zone_id", "location_type", "parent_station"]
 
 stations.each do |i|
   stop_id = stop_list[i][1]
   stop_name = stop_list[i][0]
   stop_lat = stop_list[i][2]
   stop_lng = stop_list[i][3]
-  stops << [stop_id, stop_name+" PNR", stop_lat, stop_lng, stop_id]
+  exit_lat = stop_list[i][4]
+  exit_lng = stop_list[i][5]
+
+  if exit_lat == nil && exit_lng == nil
+    stops << [stop_id, stop_name+" PNR", stop_lat, stop_lng, stop_id, 0, nil]
+  else
+    stops << [stop_id+'_STATION', stop_name+" PNR", stop_lat, stop_lng, stop_id, 1, nil]
+    stops << [stop_id, stop_name+" PNR", stop_lat, stop_lng, stop_id, 0, stop_id+'_STATION']
+    stops << [stop_id+'_EXIT', stop_name+" PNR", exit_lat, exit_lng, stop_id, 2, stop_id+'_STATION']
+  end
 end
 
 # TIMETABLE
