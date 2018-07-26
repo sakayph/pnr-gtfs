@@ -40,7 +40,7 @@ timetable_sb = CSV.read("timetable_sb.csv")
 $trips = CSV.open("gtfs/trips.txt", "wb")
 $stop_times = CSV.open("gtfs/stop_times.txt", "wb")
 
-$trips << ["trip_id", "route_id", "service_id", "shape_id"]
+$trips << ["trip_id", "route_id", "service_id", "shape_id", "trip_headsign"]
 $stop_times << ["trip_id", "stop_sequence", "stop_id", "arrival_time", "departure_time"]
 
 def parse_timetable(timetable, dir)
@@ -53,7 +53,7 @@ end
 
 def parse_trip(timetable, i, dir)
   trip_id = timetable[0][i]
-  $trips << [trip_id, $route_id, $service_id, dir]
+  last_stop_name = nil
   timetable
     .drop(2)
     .reject { |r| r[i] == nil }
@@ -61,8 +61,19 @@ def parse_trip(timetable, i, dir)
       stop_id = r[1]
       arrival_time = r[i]
       departure_time = r[i+1]
+      last_stop_name = r[0]
       $stop_times << [trip_id, index+1, stop_id, arrival_time, departure_time]
     end
+  dir_expanded = case dir
+  when 'NB'
+    'Northbound'
+  when 'SB'
+    'Southbound'
+  else
+    ''
+  end
+  headsign = $route_id+' to '+last_stop_name+' ('+dir_expanded+')'
+  $trips << [trip_id, $route_id, $service_id, dir, headsign]
 end
 
 parse_timetable(timetable_nb, 'NB')
