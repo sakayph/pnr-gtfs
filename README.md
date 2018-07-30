@@ -1,7 +1,7 @@
 # Philippine National Railways GTFS data
 
 This project generates a [GTFS][1] feed for the [PNR][2]. This is current as of
-July 1, 2017.
+July 30, 2018.
 
 ## Sources
 
