@@ -1,7 +1,7 @@
 # Philippine National Railways GTFS data
 
 This project generates a [GTFS][1] feed for the [PNR][2]. This is current as of
-July 30, 2018.
+January 14, 2019 for the Metro South Commuter line.
 
 ## Sources
 
