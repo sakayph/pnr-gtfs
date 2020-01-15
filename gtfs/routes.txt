@@ -1,2 +1,3 @@
 route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color
-MSC,PNR,"MSC","Metro South Commuter","PNR Metro South Commuter running from Tutuban to Calamba",2,http://www.pnr.gov.ph/,F07D05
+MSC,PNR,"MSC","Metro South Commuter","PNR Metro South Commuter running from Tutuban to IRRI",2,http://www.pnr.gov.ph/,F07D05
+MNC,PNR,"MSC","Metro North Commuter","PNR Metro North Commuter running from Tutuban to Governor Pascual",2,http://www.pnr.gov.ph/,F07D05
