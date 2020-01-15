@@ -131,10 +131,10 @@ def parse_shape_xml(doc)
   coords
 end
 
-def fetch_shape(name)
+def fetch_shape(route_id, rel_name)
   uri = URI('http://overpass-api.de/api/interpreter')
   query = <<EOF
-  rel["name"="#{name}"];
+  rel["name"="#{rel_name}"];
   (._; way(r));
   (._; node(w));
   out;
@@ -143,14 +143,15 @@ EOF
   if res.is_a?(Net::HTTPSuccess)
     coords = parse_shape_xml(res.body)
     coords.each.with_index do |coord, index|
-      $shapes << ['SB', coord[1], coord[0], index]
+      $shapes << [route_id + ' SB', coord[1], coord[0], index]
     end
     coords.reverse.each.with_index do |coord, index|
-      $shapes << ['NB', coord[1], coord[0], index]
+      $shapes << [route_id + ' NB', coord[1], coord[0], index]
     end
   else
     puts "Failed to get shape data"
   end
 end
 
-fetch_shape('PNR Metro Commuter Line : Tutuban - Calamba')
+fetch_shape('MSC', 'PNR Metro Commuter Line : Tutuban - Calamba')
+fetch_shape('MNC', 'PNR Shuttle Service Line: Governor Pascual - FTI')
