@@ -4,9 +4,7 @@ require 'csv'
 require 'rexml/document'
 require 'net/http'
 
-prefix = 'MSC'
-stations = 1..26
-$route_id = 'MSC'
+stations = 1..34
 $service_id = 'EVERYDAY'
 
 # STOPS
@@ -14,23 +12,15 @@ $service_id = 'EVERYDAY'
 stop_list = CSV.read("stops.csv")
 stops = CSV.open("gtfs/stops.txt", "wb")
 
-stops << ["stop_id", "stop_name", "stop_lat", "stop_lon", "zone_id", "location_type", "parent_station"]
+stops << ["stop_id", "stop_name", "stop_lat", "stop_lon", "zone_id"]
 
 stations.each do |i|
-  stop_id = stop_list[i][1]
   stop_name = stop_list[i][0]
+  stop_id = stop_list[i][1]
   stop_lat = stop_list[i][2]
   stop_lng = stop_list[i][3]
-  exit_lat = stop_list[i][4]
-  exit_lng = stop_list[i][5]
 
-  if exit_lat == nil && exit_lng == nil
-    stops << [stop_id, stop_name+" PNR", stop_lat, stop_lng, stop_id, 0, nil]
-  else
-    stops << [stop_id+'_STATION', stop_name+" PNR", stop_lat, stop_lng, stop_id, 1, nil]
-    stops << [stop_id, stop_name+" PNR", stop_lat, stop_lng, stop_id, 0, stop_id+'_STATION']
-    stops << [stop_id+'_EXIT', stop_name+" PNR", exit_lat, exit_lng, stop_id, 2, stop_id+'_STATION']
-  end
+  stops << [stop_id, stop_name+" PNR", stop_lat, stop_lng, stop_id]
 end
 
 # TIMETABLE
@@ -58,10 +48,10 @@ def parse_trip(timetable, i, dir)
     .drop(2)
     .reject { |r| r[i] == nil }
     .each.with_index do |r, index|
+      last_stop_name = r[0]
       stop_id = r[1]
       arrival_time = r[i]
-      departure_time = r[i+1]
-      last_stop_name = r[0]
+      departure_time = r[i]
       $stop_times << [trip_id, index+1, stop_id, arrival_time, departure_time]
     end
   dir_expanded = case dir
@@ -72,8 +62,9 @@ def parse_trip(timetable, i, dir)
   else
     ''
   end
-  headsign = $route_id+' to '+last_stop_name+' ('+dir_expanded+')'
-  $trips << [trip_id, $route_id, $service_id, dir, headsign]
+  route_id = trip_id[/\w+/]
+  headsign = route_id+' to '+last_stop_name+' ('+dir_expanded+')'
+  $trips << [trip_id, route_id, $service_id, dir, headsign]
 end
 
 parse_timetable(timetable_nb, 'NB')
@@ -89,12 +80,14 @@ fare_rules << ["fare_id", "origin_id", "destination_id"]
 fare_attributes << ["fare_id", "price", "currency_type", "payment_method", "transfers"]
 
 stations.each do |i|
+  break if fare_table[i+1] == nil
   from_code = fare_table[i+1][1]
   stations.each do |j|
+    break if fare_table[j+1] == nil
     to_code = fare_table[1][j+1]
     if i != j
       fare = fare_table[i+1][j+1]
-      fare_id = sprintf("%s-%s-%s", prefix, from_code, to_code)
+      fare_id = sprintf("%s-%s", from_code, to_code)
 
       fare_rules << [fare_id, from_code, to_code]
       fare_attributes << [fare_id, fare, "PHP", 1, 0]
@@ -138,10 +131,10 @@ def parse_shape_xml(doc)
   coords
 end
 
-def fetch_shape(name)
+def fetch_shape(route_id, rel_name)
   uri = URI('http://overpass-api.de/api/interpreter')
   query = <<EOF
-  rel["name"="#{name}"];
+  rel["name"="#{rel_name}"];
   (._; way(r));
   (._; node(w));
   out;
@@ -150,14 +143,15 @@ EOF
   if res.is_a?(Net::HTTPSuccess)
     coords = parse_shape_xml(res.body)
     coords.each.with_index do |coord, index|
-      $shapes << ['SB', coord[1], coord[0], index]
+      $shapes << [route_id + ' SB', coord[1], coord[0], index]
     end
     coords.reverse.each.with_index do |coord, index|
-      $shapes << ['NB', coord[1], coord[0], index]
+      $shapes << [route_id + ' NB', coord[1], coord[0], index]
     end
   else
     puts "Failed to get shape data"
   end
 end
 
-fetch_shape('PNR Metro Commuter Line : Tutuban - Calamba')
+fetch_shape('MSC', 'PNR Metro Commuter Line : Tutuban - Calamba')
+fetch_shape('MNC', 'PNR Shuttle Service Line: Governor Pascual - FTI')

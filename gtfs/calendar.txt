@@ -1,2 +1,3 @@
 service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,end_date
-EVERYDAY,1,1,1,1,1,1,1,20170701,20200919
+EVERYDAY,1,1,1,1,1,1,1,20200601,20221231
+HOLYWEEK_2021,1,1,1,0,0,0,1,20210401,20210404
